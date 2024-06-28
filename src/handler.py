@@ -38,7 +38,6 @@ class BasePacketHandler:
 
 class TftpReceiveHandler(BasePacketHandler):
     async def _write_file(self, file_path: str):
-        a = time.time()
         fd = open(file_path, 'wb')
         try:
             while True:
@@ -61,7 +60,7 @@ class TftpSendHandler(BasePacketHandler):
         try:
             while True:
                 data = fd.read(self.blk_size)
-                await self.queue.put(data)
+                await self._buffer.put(data)
                 if len(data) < self.blk_size:
                     self.feed_eof()
                     break

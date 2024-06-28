@@ -106,7 +106,7 @@ class TftpSendProtocol(DatagramProtocol):
 
     def __init__(self, stream: TftpSendHandler):
         self._transport: Optional[DatagramTransport] = None
-        self._block_data_id: int = 0
+        self._block_data_id: Optional[int] = None
         self._last = False
         self._stream = stream
         self._waiter: Optional[asyncio.Future] = None
@@ -134,6 +134,9 @@ class TftpSendProtocol(DatagramProtocol):
             self.set_exception(Exception(f"self:{self._block_data_id} and ack is :{packet_data.block_id}"))
 
     def update_block_id(self):
+        if self._block_data_id is None:
+            self._block_data_id = 0
+            return
         self._block_data_id += 1
         if self._block_data_id > 65535:
             self._block_data_id = 0
@@ -164,8 +167,7 @@ class TftpSendProtocol(DatagramProtocol):
 
     async def _send(self, addr):
         while not self._last:
-            print(self._block_data_id)
-            if self._block_data_id != 0:
+            if self._block_data_id is not None:
                 data = await self._get_data()
                 if data is None:
                     break
